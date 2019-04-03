@@ -4,9 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace SapXep
 {
+    public class FileDS
+    {
+        public int SoLuong { get; set; }
+        public IList<DanhSach> DanhSachHocSinh  { get; set; }
+}
     public class DanhSach
     {
         public int ID { get; set; }
@@ -28,31 +35,28 @@ namespace SapXep
     }
     class Program
     {
+
         static void Main(string[] args)
         {
             Stopwatch mStopwatch = new Stopwatch();
 
-            IList<DanhSach> Input = new List<DanhSach>();
-            IList<DanhSach> Output = new List<DanhSach>();
-            Input.Add(new DanhSach(0123,"Nguyen Van A", "Nam", 20));
-            Input.Add(new DanhSach(2656,"Hoang Quoc Viet", "Nam", 20));
-            Input.Add(new DanhSach(1256,"Nguyen Hoang N", "Nam", 19));
-            Input.Add(new DanhSach(1542,"Hoang Thi Thuy Linh", "Nu", 18));
-            Input.Add(new DanhSach(7445,"Phan Van An", "Nu", 25));
-            Input.Add(new DanhSach(2353,"Pham Thuy Linh", "Nu", 21));
-            Input.Add(new DanhSach(1344,"Bui Van Quang", "Nam", 21));
-            Input.Add(new DanhSach(5478,"Le Xuan Nam", "Nam", 20));
-            Input.Add(new DanhSach(1246,"Nguyen Cong Trinh", "Nam", 18));
-            Input.Add(new DanhSach(0787,"Tran Van Xuan", "Nu", 20));
-            foreach (DanhSach DS in Input)
+             
+            String Json_data = File.ReadAllText(@"C:\Users\Administrator\Desktop\DanhSachHocSinh.json");
+            FileDS Input = JsonConvert.DeserializeObject<FileDS>(Json_data);
+            
+            foreach (DanhSach DS in Input.DanhSachHocSinh)
             {
                 string[] cut = DS.HoTen.Split(' ');
                 DS.Ten = cut[cut.Length - 1];
             }
+            //Console.WriteLine("\n--------Danh Sach--------\n");
+            //InDanhSach(Input.DanhSachHocSinh);
 
-            Console.WriteLine("\n--------Danh Sach--------\n");
-            InDanhSach(Input);
+            // Dùng LINQ :
+            //IList<DanhSach> SapXep = Input.OrderBy(x => x.GioiTinh).ThenBy(x => x.Ten).ToList();
+            //InDanhSach(SapXep);
 
+            IList<DanhSach> Output = new List<DanhSach>();
             Console.WriteLine("\n1.Sap xep theo Tuoi");
             Console.WriteLine("2.Sap xep theo Ten");
             Console.WriteLine("3.Sap xep theo Ho Ten");
@@ -63,19 +67,19 @@ namespace SapXep
             mStopwatch.Start();
             if (lua_chon == "1")
             {
-                InDanhSach(SoSanhTheoTuoi(Input));
+                InDanhSach(SoSanhTheoTuoi(Input.DanhSachHocSinh));
             }
-            else if(lua_chon == "2")
+            else if (lua_chon == "2")
             {
-                InDanhSach(SoSanhTheoTen(Input));
+                InDanhSach(SoSanhTheoTen(Input.DanhSachHocSinh));
             }
             else if (lua_chon == "3")
             {
-                InDanhSach(SoSanhTheoHoTen(Input));
+                InDanhSach(SoSanhTheoHoTen(Input.DanhSachHocSinh));
             }
             else if (lua_chon == "4")
             {
-                InDanhSach(SoSanhTheoGioiTinh(Input));
+                InDanhSach(SoSanhTheoGioiTinh(Input.DanhSachHocSinh));
             }
             else if (lua_chon == "5")
             {
@@ -89,6 +93,34 @@ namespace SapXep
             Console.WriteLine("Thoi gian thuc hien: {0} ms", mStopwatch.ElapsedMilliseconds);
             Console.ReadKey();
         }
+
+        static IList<DanhSach> TenNam(IList<DanhSach> Input)
+        {
+            IList<DanhSach> Output = new List<DanhSach>();
+            for (int a = 0; a < Input.Count; a++)
+            {
+                if (Input[a].GioiTinh == "Nu")
+                {
+                    Input.Remove(Input[a]);
+                    a--;
+                }
+            }
+            return Input;
+        }
+        static IList<DanhSach> TenNu(IList<DanhSach> Input)
+        {
+            IList<DanhSach> Output = new List<DanhSach>();
+            for (int a = 0; a < Input.Count; a++)
+            {
+                if (Input[a].GioiTinh == "Nam")
+                {
+                    Input.Remove(Input[a]);
+                    a--;
+                }
+            }
+            return Input;
+        }
+
         static IList<DanhSach> SoSanhTheoTuoi(IList<DanhSach> Input)
         {
             IList<DanhSach> Output = new List<DanhSach>();
@@ -226,8 +258,10 @@ namespace SapXep
             }
             return b.ID;
         }
-        static String SoSanhString(string a, string b)
+        static String SoSanhString(string _a, string _b)
         {
+            string a = _a ?? "";
+            string b = _b ?? "";
             for (int i = 0; i < Math.Min(a.Length, b.Length); i++)
             {
                 if (a[i] < b[i])
@@ -243,7 +277,7 @@ namespace SapXep
                     return b;
                 }
             }
-            return a;
+            return b;
         }
         static void InDanhSach(IList<DanhSach> KetQua)
         {
