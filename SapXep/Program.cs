@@ -9,41 +9,18 @@ using System.IO;
 
 namespace SapXep
 {
-    public class FileDS
-    {
-        public int SoLuong { get; set; }
-        public IList<DanhSach> DanhSachHocSinh  { get; set; }
-}
-    public class DanhSach
-    {
-        public int ID { get; set; }
-        public string HoTen { get; set; }
-        public string GioiTinh { get; set; }
-        public int Tuoi { get; set; }
-        public string Ten { get; set; }
-        public DanhSach(int _ID, string _HoTen, string _GioiTinh, int _Tuoi)
-        {
-            ID = _ID;
-            HoTen = _HoTen;
-            GioiTinh = _GioiTinh;
-            Tuoi = _Tuoi;
-        }
-    }
-    public enum SoSanh
-    {
-        TUOI = 1, TEN = 2, HOTEN = 3, GIOITINH = 4,
-    }
+    
+    
     class Program
     {
 
         static void Main(string[] args)
         {
             Stopwatch mStopwatch = new Stopwatch();
-
-             
             String Json_data = File.ReadAllText(@"C:\Users\Administrator\Desktop\DanhSachHocSinh.json");
             FileDS Input = JsonConvert.DeserializeObject<FileDS>(Json_data);
-            
+
+
             foreach (DanhSach DS in Input.DanhSachHocSinh)
             {
                 string[] cut = DS.HoTen.Split(' ');
@@ -56,12 +33,14 @@ namespace SapXep
             //IList<DanhSach> SapXep = Input.OrderBy(x => x.GioiTinh).ThenBy(x => x.Ten).ToList();
             //InDanhSach(SapXep);
 
-            IList<DanhSach> Output = new List<DanhSach>();
+
+
             Console.WriteLine("\n1.Sap xep theo Tuoi");
             Console.WriteLine("2.Sap xep theo Ten");
             Console.WriteLine("3.Sap xep theo Ho Ten");
             Console.WriteLine("4.Sap xep theo Gioi Tinh");
-            Console.WriteLine("5.Thoat");
+            Console.WriteLine("5.Sap xep Ten theo Gioi Tinh");
+            Console.WriteLine("6.Thoat");
             Console.Write("\nChon cach sap xep: ");
             string lua_chon = Console.ReadLine();
             mStopwatch.Start();
@@ -83,6 +62,10 @@ namespace SapXep
             }
             else if (lua_chon == "5")
             {
+                InDanhSach(SapXepTenTheoGT(Input.DanhSachHocSinh));
+            }
+            else if (lua_chon == "6")
+            {
                 Environment.Exit(0);
             }
             else
@@ -91,7 +74,67 @@ namespace SapXep
             }
             mStopwatch.Stop();
             Console.WriteLine("Thoi gian thuc hien: {0} ms", mStopwatch.ElapsedMilliseconds);
+
+            IList<DanhSach> Output = new List<DanhSach>();
+
+            ////InsertionSort
+            //mStopwatch.Start();
+            //SoSanhTheoTen(Input.DanhSachHocSinh);
+            //mStopwatch.Stop();
+            //Console.WriteLine("Thoi gian thuc hien InsertionSort: {0} ms", mStopwatch.ElapsedMilliseconds);
+
+            ////BubbleSort
+            //mStopwatch.Reset();
+            //mStopwatch.Start();
+            //BubbleSort_Ten(Input.DanhSachHocSinh);
+            //mStopwatch.Stop();
+            //Console.WriteLine("Thoi gian thuc hien BubbleSort: {0} ms", mStopwatch.ElapsedMilliseconds);
+
+            ////SelectionSort
+            //mStopwatch.Reset();
+            //mStopwatch.Start();
+            //SelectionSort_Ten(Input.DanhSachHocSinh);
+            //mStopwatch.Stop();
+            //Console.WriteLine("Thoi gian thuc hien SelectionSort: {0} ms", mStopwatch.ElapsedMilliseconds);
+
             Console.ReadKey();
+        }
+
+        static IList<DanhSach> BubbleSort_Ten(IList<DanhSach> Input)
+        {
+            
+            for (int i = 0; i < Input.Count; i++)
+            {
+                for (int j = Input.Count - 1; j > i ; j--)
+                {
+                    if (SoSanhDanhSach(Input[j], Input[j - 1], SoSanh.TEN) == Input[j].ID)
+                    {
+                        DanhSach tp = Input[j];
+                        Input[j] = Input[j - 1];
+                        Input[j - 1] = tp;
+                    }
+                }
+            }
+            return Input;
+        }
+        public static IList<DanhSach> SelectionSort_Ten(IList<DanhSach> Input)
+        {
+            int min;
+            for (int i = 0; i < Input.Count; i++)
+            {
+                min = i;
+                for (int j = i + 1; j < Input.Count; j++)
+                {
+                    if (SoSanhDanhSach(Input[j], Input[min], SoSanh.TEN) == Input[j].ID)
+                    {
+                        min = j;
+                    }
+                }
+                DanhSach temp = Input[i];
+                Input[i] = Input[min];
+                Input[min] = temp;
+            }
+            return Input;
         }
 
         static IList<DanhSach> TenNam(IList<DanhSach> Input)
@@ -99,28 +142,34 @@ namespace SapXep
             IList<DanhSach> Output = new List<DanhSach>();
             for (int a = 0; a < Input.Count; a++)
             {
-                if (Input[a].GioiTinh == "Nu")
+                if (Input[a].GioiTinh == "Nam")
                 {
-                    Input.Remove(Input[a]);
-                    a--;
+                    Output.Add(Input[a]);
                 }
             }
-            return Input;
+            return Output;
         }
         static IList<DanhSach> TenNu(IList<DanhSach> Input)
         {
             IList<DanhSach> Output = new List<DanhSach>();
             for (int a = 0; a < Input.Count; a++)
             {
-                if (Input[a].GioiTinh == "Nam")
+                if (Input[a].GioiTinh == "Nu")
                 {
-                    Input.Remove(Input[a]);
-                    a--;
+                    Output.Add(Input[a]);
                 }
             }
-            return Input;
+            return Output;
         }
-
+        static IList<DanhSach> SapXepTenTheoGT(IList<DanhSach> Input)
+        {
+           IList<DanhSach> Output = SoSanhTheoTen(TenNam(Input));
+            foreach(DanhSach Tnu in SoSanhTheoTen(TenNu(Input)))
+            {
+                Output.Add(Tnu);
+            }
+            return Output;
+        }
         static IList<DanhSach> SoSanhTheoTuoi(IList<DanhSach> Input)
         {
             IList<DanhSach> Output = new List<DanhSach>();
